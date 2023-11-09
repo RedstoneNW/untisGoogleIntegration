@@ -1,2 +1,2 @@
 # untisGoogleIntegration
-Syncs the untis timetable to the google Calendar
+Syncs the untis timetable to the Google Calendar
