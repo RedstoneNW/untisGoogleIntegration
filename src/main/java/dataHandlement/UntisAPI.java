@@ -15,7 +15,7 @@ import java.util.Objects;
 import com.google.api.services.calendar.model.Event;
 
 public class UntisAPI {
-    static LoginDataHandler loginDataHandler = new LoginDataHandler();
+    private static LoginDataHandler loginDataHandler = new LoginDataHandler();
     /**
      * How many weeks should be updated
      */
