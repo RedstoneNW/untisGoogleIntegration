@@ -1,5 +1,6 @@
 package dataHandlement;
 
+import com.google.api.services.calendar.model.Event;
 import org.bytedream.untis4j.Session;
 import org.bytedream.untis4j.responseObjects.Timetable;
 
@@ -12,10 +13,8 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Objects;
 
-import com.google.api.services.calendar.model.Event;
-
 public class UntisAPI {
-    private static LoginDataHandler loginDataHandler = new LoginDataHandler();
+    private static final LoginDataHandler loginDataHandler = new LoginDataHandler();
     /**
      * How many weeks should be updated
      */
@@ -60,8 +59,10 @@ public class UntisAPI {
             //Get Timetable of the day
             Timetable timetable = session.getTimetableFromPersonId(LocalDate.now().plusDays(x), LocalDate.now().plusDays(x), session.getInfos().getPersonId());
             timetable.sortByStartTime();
-            List<Event> events;
-            events = calendar.getEvents(timetable.get(x).getDate().toString());
+            List<Event> events = null;
+            if (!timetable.isEmpty()) {
+                events = calendar.getEvents(timetable.get(0).getDate().toString());
+            }
 
             //Iterate through all subjects of the day
             for (int i = 0; i < timetable.size(); i++) {
@@ -79,6 +80,7 @@ public class UntisAPI {
                             System.out.println("-" + y + "-");
                             if (events.get(y).getSummary().equals(timetable.get(i).getSubjects().getLongNames().toString())) {
                                 calendar.removeEvent(events.get(y).getId());
+                                events.remove(events.get(y));
                                 System.out.println("Existing class was deleted");
                             }
                         }
@@ -107,8 +109,8 @@ public class UntisAPI {
                     String currentDate = timetable.get(i).getDate().toString();
 
                     //Check if lesson event is already added
-                    if (!eventExists(timetable,calendar,i,events)) {
-                        System.out.println(eventExists(timetable,calendar,i));
+                    if (!eventExists(timetable,i,events)) {
+                        System.out.println("Event not existing");
                         //Check if exam is to be added
                         if (!Objects.equals(timetable.get(i).getSubjects().getLongNames().toString(), "[]")) {
                             calendar.addEvent(
@@ -121,11 +123,11 @@ public class UntisAPI {
                                     endTime
                             );
                         } else {
-                            events = calendar.getEvents(timetable.get(i).getDate().toString());
                             if (events != null) {
                                 for (Event event : events) {
                                     if (event.getSummary().equals("Klausur")) {
                                         calendar.removeEvent(event.getId());
+                                        events.remove(event);
                                     }
                                 }
                             }
@@ -136,9 +138,8 @@ public class UntisAPI {
                                     currentDate,
                                     currentDate,
                                     startTime,
-                                    timetable.get(i+2).getEndTime().toString()
+                                    timetable.get(i).getEndTime().toString()
                                     );
-                            i = i +3;
                         }
                     }
                 }
@@ -151,13 +152,10 @@ public class UntisAPI {
     /**
      * Method to check if event already exists
      * @param timetable Untis timetable to check
-     * @param calendarAPI Calendar API where event should be checked if already added
      * @param currentLesson Current Lesson to check in timetable
      * @return If event exists
-     * @throws GeneralSecurityException For Calendar API Access
-     * @throws IOException For timetable API Access
      */
-    public static boolean eventExists(Timetable timetable, GoogleCalendarAPI calendarAPI, int currentLesson, List<Event> pEvents) throws IOException, GeneralSecurityException {
+    public static boolean eventExists(Timetable timetable, int currentLesson, List<Event> pEvents) {
         //Get all events from given Day
         System.out.println("----Checking for existing Events----");
         boolean isExisting = false;
