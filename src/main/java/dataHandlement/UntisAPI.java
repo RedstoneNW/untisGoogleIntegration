@@ -60,15 +60,15 @@ public class UntisAPI {
             //Get Timetable of the day
             Timetable timetable = session.getTimetableFromPersonId(LocalDate.now().plusDays(x), LocalDate.now().plusDays(x), session.getInfos().getPersonId());
             timetable.sortByStartTime();
+            List<Event> events;
+            events = calendar.getEvents(timetable.get(x).getDate().toString());
 
             //Iterate through all subjects of the day
             for (int i = 0; i < timetable.size(); i++) {
                 System.out.println("Lesson " + (i+1) + ":");
-                List<Event> events;
                 //Check if lesson is cancelled
                 if (Objects.equals(timetable.get(i).getTeachers().toString(), "[]") || Objects.equals(timetable.get(i).getCode().toString(), "CANCELLED") || clearAll) {
                     System.out.println("CANCELLED");
-                    events = calendar.getEvents(timetable.get(i).getDate().toString());
                     System.out.println(events);
                     //Delete lesson event if it is already added
                     if (events != null) {
@@ -107,7 +107,7 @@ public class UntisAPI {
                     String currentDate = timetable.get(i).getDate().toString();
 
                     //Check if lesson event is already added
-                    if (!eventExists(timetable,calendar,i)) {
+                    if (!eventExists(timetable,calendar,i,events)) {
                         System.out.println(eventExists(timetable,calendar,i));
                         //Check if exam is to be added
                         if (!Objects.equals(timetable.get(i).getSubjects().getLongNames().toString(), "[]")) {
@@ -157,19 +157,18 @@ public class UntisAPI {
      * @throws GeneralSecurityException For Calendar API Access
      * @throws IOException For timetable API Access
      */
-    public static boolean eventExists(Timetable timetable, GoogleCalendarAPI calendarAPI, int currentLesson) throws IOException, GeneralSecurityException {
+    public static boolean eventExists(Timetable timetable, GoogleCalendarAPI calendarAPI, int currentLesson, List<Event> pEvents) throws IOException, GeneralSecurityException {
         //Get all events from given Day
-        List<Event> events = calendarAPI.getEvents(timetable.get(currentLesson).getDate().toString());
         System.out.println("----Checking for existing Events----");
         boolean isExisting = false;
         //Check if event exists
-        if (events != null) {
-            for (int i = 0; i < events.size(); i++) {
+        if (pEvents != null) {
+            for (int i = 0; i < pEvents.size(); i++) {
                 System.out.println("-" + i + "-");
                 System.out.println(timetable.get(currentLesson).getSubjects().getLongNames().toString());
-                System.out.println(events.get(i).getSummary());
+                System.out.println(pEvents.get(i).getSummary());
                 System.out.println("---");
-                if (events.get(i).getSummary().equals(timetable.get(currentLesson).getSubjects().getLongNames().toString())) {
+                if (pEvents.get(i).getSummary().equals(timetable.get(currentLesson).getSubjects().getLongNames().toString())) {
                     isExisting = true;
                 }
             }
