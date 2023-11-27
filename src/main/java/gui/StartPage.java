@@ -5,22 +5,20 @@
 package gui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import dataHandlement.LoggingHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.util.List;
 
 /**
  * @author redst
  */
 public class StartPage extends JPanel {
-    private static JFrame frame = new JFrame();
+    private static final JFrame frame = new JFrame();
     public static void main(String[] args) {
-
         FlatDarkLaf.setup();
         frame.add(new StartPage());
         frame.pack();
@@ -28,15 +26,25 @@ public class StartPage extends JPanel {
         frame.setMinimumSize(new Dimension(705,400));
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        System.out.println("FINISHED");
+        System.out.println("Startpage shown");
     }
     public StartPage() {
         initComponents();
-        System.setOut(new PrintStream(System.out) {
-            public void println(String s) {
-                addLog(s);
+        LoggingHandler loggingHandler = new LoggingHandler();
+        loggingHandler.registerLogOut(this);
+        List<String> oldLogs = loggingHandler.getLogs();
+        if (oldLogs != null) {
+            String[] oldLogsArray = new String[oldLogs.toArray().length];
+            oldLogsArray = oldLogs.toArray(oldLogsArray);
+            for (String log : oldLogsArray) {
+                if (textArea1.getText().isEmpty()) {
+                    textArea1.insert(log, 0);
+                } else {
+                    textArea1.insert(log + "\n", 0);
+                }
             }
-        });
+            textArea1.setCaretPosition(0);
+        }
     }
 
     private void textField1(ActionEvent e) {
@@ -117,18 +125,6 @@ public class StartPage extends JPanel {
             textArea1.insert(pLogentry + "\n",0);
         }
         textArea1.setCaretPosition(0);
-        try
-        {
-            String filename= "./log.txt";
-            FileWriter fw = new FileWriter(filename,true); //the true will append the new data
-            fw.write(pLogentry + "\n");//appends the string to the file
-            fw.close();
-        }
-        catch(IOException ioe)
-        {
-            System.err.println("IOException: " + ioe.getMessage());
-        }
-
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
