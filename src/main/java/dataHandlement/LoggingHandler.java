@@ -44,12 +44,6 @@ public class LoggingHandler {
         }
     }
 
-    public void deRegisterLogOut(StartPage pStartPage) {
-        if (pStartPage != null) {
-            registeredOutputs.remove(pStartPage);
-        }
-    }
-
     public List<String> getLogs() {
         List<String> logs = new ArrayList<>();
         BufferedReader reader;
