@@ -10,6 +10,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -124,10 +125,12 @@ public class UntisAPI {
                             );
                         } else {
                             if (events != null) {
-                                for (Event event : events) {
+                                Iterator<Event> iterator = events.iterator();
+                                while (iterator.hasNext()) {
+                                    Event event = iterator.next();
                                     if (event.getSummary().equals("Klausur")) {
                                         calendar.removeEvent(event.getId());
-                                        events.remove(event);
+                                        iterator.remove(); // Use iterator's remove method
                                     }
                                 }
                             }
