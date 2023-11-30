@@ -92,7 +92,7 @@ public class UntisAPI {
                     String endTime = timetable.get(i).getEndTime().toString();
 
                     //Obtain next and current lesson
-                    String nextLesson = "UNDEFIEND";
+                    String nextLesson = "UNDEFINED";
                     String currentLesson = timetable.get(i).getSubjects().getIds().toString();
 
                     if (i < timetable.size() - 1) {

@@ -6,10 +6,11 @@ import java.io.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LoggingHandler {
 
-    private final List<StartPage> registeredOutputs = new ArrayList<>();
+    private final List<StartPage> registeredOutputs = new CopyOnWriteArrayList<>();
 
     public LoggingHandler() {
         System.setOut(new PrintStream(System.out) {

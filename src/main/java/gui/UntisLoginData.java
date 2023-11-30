@@ -1,7 +1,3 @@
-/*
- * Created by JFormDesigner on Mon Oct 30 16:40:10 CET 2023
- */
-
 package gui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
@@ -17,9 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
-/**
- * @author redst
- */
 public class UntisLoginData extends JPanel {
 
     static JFrame frame = new JFrame();
@@ -54,7 +47,8 @@ public class UntisLoginData extends JPanel {
         try {
             loginDataHandler.saveCredentials(credentials);
         } catch (WinAPICallFailedException ex) {
-            throw new RuntimeException(ex);
+            // Handle the exception properly and provide meaningful feedback to the user
+            JOptionPane.showMessageDialog(frame, "Failed to save credentials: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         frame.dispose();
         //TODO open next screen
@@ -129,6 +123,7 @@ public class UntisLoginData extends JPanel {
             "[fill]" +
             "[fill]" +
             "[500,fill]" +
+            "[fill]" +
             "[fill]" +
             "[fill]" +
             "[fill]" +

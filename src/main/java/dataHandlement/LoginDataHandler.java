@@ -36,8 +36,7 @@ public class LoginDataHandler {
     private String[] encrypt(String[] pCredentials) throws WinAPICallFailedException, InitializationFailedException {
         //Check if WinDPAPI is supported
         if (!WinDPAPI.isPlatformSupported()) {
-            System.err.println("The Windows Data Protection API (DPAPI) is not available on " + System.getProperty("os.name") + ".");
-            return null;
+            throw new UnsupportedOperationException("The Windows Data Protection API (DPAPI) is not available on " + System.getProperty("os.name") + ".");
         }
         //Create Encryption Instance and output Array
         winDPAPI = WinDPAPI.newInstance(WinDPAPI.CryptProtectFlag.CRYPTPROTECT_UI_FORBIDDEN);
@@ -60,8 +59,7 @@ public class LoginDataHandler {
     private String[] decrypt(String[] pCredentials) throws WinAPICallFailedException, InitializationFailedException {
         //Check if WinDPAPI is supported
         if (!WinDPAPI.isPlatformSupported()) {
-            System.err.println("The Windows Data Protection API (DPAPI) is not available on " + System.getProperty("os.name") + ".");
-            return null;
+            throw new UnsupportedOperationException("The Windows Data Protection API (DPAPI) is not available on " + System.getProperty("os.name") + ".");
         }
         //Create Decryption Instance and output Array
         winDPAPI = WinDPAPI.newInstance(WinDPAPI.CryptProtectFlag.CRYPTPROTECT_UI_FORBIDDEN);

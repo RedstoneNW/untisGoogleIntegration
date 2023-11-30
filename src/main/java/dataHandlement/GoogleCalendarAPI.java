@@ -1,6 +1,7 @@
 package dataHandlement;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -50,6 +51,23 @@ public class GoogleCalendarAPI {
 
     private static final String CALENDAR_ID = "c543f2e06e087d1188af906633a81116848531b716162683b0dfe1e808dc22b0@group.calendar.google.com";
 
+    private final NetHttpTransport HTTP_TRANSPORT;
+    private Calendar service;
+
+    /**
+     * Constructor for GoogleCalendarAPI
+     *
+     * @throws IOException              If the credential file cannot be read/found
+     * @throws GeneralSecurityException For API Service
+     */
+    public GoogleCalendarAPI() throws IOException, GeneralSecurityException{
+            HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+            service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                    .setApplicationName(APPLICATION_NAME)
+                    .build();
+            System.out.println("Service builded");
+    }
+
     /**
      * Creates an authorized Credential Object
      *
@@ -57,40 +75,100 @@ public class GoogleCalendarAPI {
      * @return An authorized Credential Object
      * @throws IOException If the credential file cannot be read/found
      */
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
-        //Load client secrets
+    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+        GoogleAuthorizationCodeFlow flow = buildAuthorizationFlow(HTTP_TRANSPORT);
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+
+        try {
+            // Attempt to get credentials
+            return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+        } catch (TokenResponseException e) {
+            handleTokenResponseException(flow, receiver, e);
+        }
+
+        // Rethrow the exception as a RuntimeException
+        throw new RuntimeException("Google API Token error");
+    }
+
+    private GoogleAuthorizationCodeFlow buildAuthorizationFlow(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+        // Load client secrets
         InputStream in = new FileInputStream(CREDENTIALS_FILE_PATH);
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-        //Build flow and trigger user authorization
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+        // Build flow and trigger user authorization
+        return new GoogleAuthorizationCodeFlow.Builder(
                 HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
                 .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
                 .setAccessType("offline")
                 .build();
-        //Receive credential
+    }
+
+    private void handleTokenResponseException(GoogleAuthorizationCodeFlow flow, LocalServerReceiver receiver, TokenResponseException e) throws IOException {
+        // Handle the TokenResponseException here
+        if (e.getStatusCode() == 400) {
+            System.out.println("Error: 400 Bad Request");
+            System.out.println("Error Content: " + e.getContent());
+
+            // Attempt to refresh the token
+            System.out.println("Attempting to refresh the token...");
+            Credential credential = refreshAccessToken(flow);
+            if (credential != null) {
+                System.out.println("Token refreshed successfully.");
+                return;
+            }
+
+            // If token refresh fails, delete the existing token and prompt user to reauthorize
+            System.out.println("Deleting existing token...");
+            flow.getCredentialDataStore().delete("user");
+
+            // Prompt the user to reauthorize
+            Credential newCredential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+            System.out.println("Token reauthorized successfully.");
+        } else {
+            System.out.println("TokenResponseException: " + e.getMessage());
+            // Handle other TokenResponseException cases
+        }
+    }
+
+    private Credential refreshAccessToken(GoogleAuthorizationCodeFlow flow) {
+        try {
+            return flow.loadCredential("user").setAccessToken(null);
+        } catch (IOException e) {
+            System.out.println("Error refreshing token: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void renewToken() throws IOException {
+        GoogleAuthorizationCodeFlow flow = buildAuthorizationFlow(HTTP_TRANSPORT);
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        //return Credential Object
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+
+        Credential credential = refreshAccessToken(flow);
+        if (credential.getAccessToken() != null) {
+            System.out.println("Token renewed successfully.");
+        } else {
+            // If token refresh fails, delete the existing token and prompt the user to reauthorize
+            System.out.println("Deleting existing token...");
+            flow.getCredentialDataStore().delete("user");
+
+            // Prompt the user to reauthorize
+            Credential newCredential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+            System.out.println("Token reauthorized successfully.");
+        }
+        service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                .setApplicationName(APPLICATION_NAME)
+                .build();
     }
 
     /**
      * Method to get all Events on specific date
      *
      * @param date The date of which the events should be returned
-     * @return A List of all events of the date
+     * @return A List of all events of the date, or an empty list if there are no events or date is null
      * @throws IOException              For API Service
-     * @throws GeneralSecurityException For API Service
      */
-    public List<Event> getEvents(String date) throws IOException, GeneralSecurityException {
+    public List<Event> getEvents(String date) throws IOException {
         if (date != null) {
-            //Build authorized API client service
-            final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            Calendar service =
-                    new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                            .setApplicationName(APPLICATION_NAME)
-                            .build();
-
             //Timezone handler
             TimeZone tz = TimeZone.getTimeZone("Europe/Berlin");
             long now = System.currentTimeMillis();
@@ -103,23 +181,32 @@ public class GoogleCalendarAPI {
             DateTime startTime = DateTime.parseRfc3339(startDate);
             DateTime endTime = DateTime.parseRfc3339(endDate);
 
-            //Get all Events from date
-            Events events = service.events().list(CALENDAR_ID)
-                    .setTimeMin(startTime)
-                    .setTimeMax(endTime)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute();
-            List<Event> items = events.getItems();
+            List<Event> items;
 
+            //Get all Events from date
+            try {
+                Events events = getServiceEvents(startTime,endTime);
+                items = events.getItems();
+            } catch (TokenResponseException e) {
+                renewToken();
+                Events events = getServiceEvents(startTime,endTime);
+                items = events.getItems();
+            }
             //Return all items
             if (!items.isEmpty()) {
                 return items;
             }
-
         }
+        return Collections.emptyList();
+    }
 
-        return null;
+    private Events getServiceEvents(DateTime startTime, DateTime endTime) throws IOException {
+        return service.events().list(CALENDAR_ID)
+                .setTimeMin(startTime)
+                .setTimeMax(endTime)
+                .setOrderBy("startTime")
+                .setSingleEvents(true)
+                .execute();
     }
 
     /**
@@ -132,17 +219,9 @@ public class GoogleCalendarAPI {
      * @param pStartTime  Time on which the event starts
      * @param pEndDate    Date on which the event ends
      * @param pEndTime    Time on which the event ends
-     * @throws GeneralSecurityException For API service
      * @throws IOException              For API service
      */
-    public void addEvent(String name, String location, String description, String pStartDate, String pEndDate, String pStartTime, String pEndTime) throws GeneralSecurityException, IOException {
-        //Build a new authorized API client service
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Calendar service =
-                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                        .setApplicationName(APPLICATION_NAME)
-                        .build();
-
+    public void addEvent(String name, String location, String description, String pStartDate, String pEndDate, String pStartTime, String pEndTime) throws IOException {
         //Timezone handler
         TimeZone tz = TimeZone.getTimeZone("Europe/Berlin");
         long now = System.currentTimeMillis();
@@ -188,18 +267,10 @@ public class GoogleCalendarAPI {
      * Method to remove events from primary calendar
      *
      * @param id id of event to remove
-     * @throws GeneralSecurityException For API service
      * @throws IOException              For API service
      */
-    public void removeEvent(String id) throws GeneralSecurityException, IOException {
-        //Build a new authorized API client service
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Calendar service =
-                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                        .setApplicationName(APPLICATION_NAME)
-                        .build();
+    public void removeEvent(String id) throws IOException {
         //Remove event
         service.events().delete(CALENDAR_ID, id).execute();
     }
-
 }
