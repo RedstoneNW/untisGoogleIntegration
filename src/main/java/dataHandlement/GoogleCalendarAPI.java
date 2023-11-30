@@ -112,7 +112,7 @@ public class GoogleCalendarAPI {
             // Attempt to refresh the token
             System.out.println("Attempting to refresh the token...");
             Credential credential = refreshAccessToken(flow);
-            if (credential != null) {
+            if (credential.getAccessToken() != null) {
                 System.out.println("Token refreshed successfully.");
                 return;
             }
@@ -143,7 +143,8 @@ public class GoogleCalendarAPI {
         GoogleAuthorizationCodeFlow flow = buildAuthorizationFlow(HTTP_TRANSPORT);
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
 
-        Credential credential = refreshAccessToken(flow);
+        refreshAccessToken(flow);
+        Credential credential = getCredentials(HTTP_TRANSPORT);
         if (credential.getAccessToken() != null) {
             System.out.println("Token renewed successfully.");
         } else {
