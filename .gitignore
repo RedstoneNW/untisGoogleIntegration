@@ -40,3 +40,18 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Docs ###
+/doc/**
+/lib/beansbinding.jar
+/lib/beansbinding-doc.zip
+/lib/beansbinding-src.zip
+/credentials/google.json
+/.idea/gradle.xml
+/src/main/resources/META-INF/MANIFEST.MF
+/.idea/misc.xml
+/qodana.yaml
+/credentials/tokens/StoredCredential
+/credentials/untis.json
+/.idea/vcs.xml
+/.idea/workspace.xml
