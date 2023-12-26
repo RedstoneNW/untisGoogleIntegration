@@ -1,0 +1,15 @@
+#Values of how far the setup progess is completed
+acceptedPrivacyPolicy = false
+givenUntisCredentials = false
+
+#Paths where to store credentials and logs
+untisCredentialsFile = './credentials/untis.json'
+googleCredentialsFile = './credentials/google.json'
+googleTokensLocation = 'credentials/tokens'
+logsFileLocation = './log.txt'
+
+#Google Calendar Settings
+calendarToStore = 'primary'
+
+#Untis Timetable Settings
+howManyWeeksToUpdate = 3

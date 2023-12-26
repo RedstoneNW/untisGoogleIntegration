@@ -5,12 +5,14 @@
 package gui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import dataHandlement.Config;
 import dataHandlement.LoggingHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -18,7 +20,7 @@ import java.util.List;
  */
 public class StartPage extends JPanel {
     private static final JFrame frame = new JFrame();
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         FlatDarkLaf.setup();
         frame.add(new StartPage());
         frame.pack();
@@ -28,9 +30,10 @@ public class StartPage extends JPanel {
         frame.setVisible(true);
         System.out.println("Startpage shown");
     }
-    public StartPage() {
+    public StartPage() throws IOException {
         initComponents();
-        LoggingHandler loggingHandler = new LoggingHandler();
+        Config config = new Config();
+        LoggingHandler loggingHandler = new LoggingHandler(config);
         loggingHandler.registerLogOut(this);
         List<String> oldLogs = loggingHandler.getLogs();
         if (oldLogs != null) {

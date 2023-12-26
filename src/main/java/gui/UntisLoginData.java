@@ -2,6 +2,7 @@ package gui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.github.windpapi4j.WinAPICallFailedException;
+import dataHandlement.Config;
 import dataHandlement.LoginDataHandler;
 import net.miginfocom.swing.MigLayout;
 
@@ -12,6 +13,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.io.IOException;
 
 public class UntisLoginData extends JPanel {
 
@@ -33,8 +35,9 @@ public class UntisLoginData extends JPanel {
         initComponents();
     }
 
-    private void next(ActionEvent e) {
-        LoginDataHandler loginDataHandler = new LoginDataHandler();
+    private void next(ActionEvent e) throws IOException {
+        Config config = new Config();
+        LoginDataHandler loginDataHandler = new LoginDataHandler(config);
         String[] credentials = new String[4];
         credentials[0] = username.getText();
         credentials[1] = password.getText();
@@ -254,7 +257,10 @@ public class UntisLoginData extends JPanel {
         //---- next ----
         next.setText("Next");
         next.setEnabled(false);
-        next.addActionListener(e -> next(e));
+        next.addActionListener(e -> {try {
+        next(e);} catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }});
         add(next, "cell 22 32 13 1");
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
     }

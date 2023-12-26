@@ -38,7 +38,7 @@ public class GoogleCalendarAPI {
     /**
      * Directory to store authorization tokens
      */
-    private static final String TOKENS_DIRECTORY_PATH = "credentials/tokens";
+    private static String TOKENS_DIRECTORY_PATH = "credentials/tokens";
     /**
      * Global Instances of the scopes required
      */
@@ -47,9 +47,9 @@ public class GoogleCalendarAPI {
     /**
      * Path to credentials file
      */
-    private static final String CREDENTIALS_FILE_PATH = "./credentials/google.json";
+    private static String CREDENTIALS_FILE_PATH = "./credentials/google.json";
 
-    private static final String CALENDAR_ID = "c543f2e06e087d1188af906633a81116848531b716162683b0dfe1e808dc22b0@group.calendar.google.com";
+    private static String CALENDAR_ID = "c543f2e06e087d1188af906633a81116848531b716162683b0dfe1e808dc22b0@group.calendar.google.com";
 
     private final NetHttpTransport HTTP_TRANSPORT;
     private Calendar service;
@@ -60,7 +60,11 @@ public class GoogleCalendarAPI {
      * @throws IOException              If the credential file cannot be read/found
      * @throws GeneralSecurityException For API Service
      */
-    public GoogleCalendarAPI() throws IOException, GeneralSecurityException{
+    public GoogleCalendarAPI(Config config) throws IOException, GeneralSecurityException{
+            TOKENS_DIRECTORY_PATH = config.getGoogleTokensLocation();
+            CREDENTIALS_FILE_PATH = config.getGoogleCredentialsFile();
+            CALENDAR_ID = config.getCalendarToStore();
+
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
             service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                     .setApplicationName(APPLICATION_NAME)

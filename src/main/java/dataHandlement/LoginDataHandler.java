@@ -20,11 +20,15 @@ public class LoginDataHandler {
     /**
      * File Path to credential File
      */
-    private final String fileLocation = "./credentials/untis.json";
+    private final String fileLocation;
     /**
      * Global Instance of WinDPAPI encryption Object
      */
     private WinDPAPI winDPAPI;
+
+    public LoginDataHandler(Config config) {
+        fileLocation = config.getUntisCredentialsFile();
+    }
 
     /**
      * Method to encrypt all elements in the given Array and returning the encrypted Strings after encryption with WinDPAPI encryption Service

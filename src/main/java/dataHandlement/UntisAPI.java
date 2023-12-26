@@ -15,11 +15,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class UntisAPI {
-    private static final LoginDataHandler loginDataHandler = new LoginDataHandler();
-    /**
-     * How many weeks should be updated
-     */
-    private static final int weeksToUpdate = 3;
     /**
      * Clear all added events in weeksToUpdate range
      */
@@ -31,6 +26,12 @@ public class UntisAPI {
      * @throws IOException Required for API Call
      */
     public static void main(String[] args) throws IOException, GeneralSecurityException {
+        //Load Config File Configurations
+        Config config = new Config();
+        int weeksToUpdate = (int) config.getHowManyWeeksToUpdate();
+
+        LoginDataHandler loginDataHandler = new LoginDataHandler(config);
+
         //Load credentials
         String[] credentials = loginDataHandler.getCredentials();
         String username = credentials[0];
@@ -45,7 +46,7 @@ public class UntisAPI {
         System.out.println("-------------------------------");
 
         //Calculate how many days needs to be updated
-        int daysToUpdate = weeksToUpdate*7;
+        int daysToUpdate = weeksToUpdate *7;
         System.out.println(ChronoUnit.DAYS.between(LocalDate.now(),LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))));
 
         daysToUpdate += (int) ChronoUnit.DAYS.between(LocalDate.now().minusDays(1),LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)));
@@ -53,7 +54,7 @@ public class UntisAPI {
         System.out.println(daysToUpdate);
 
         //Create Google API
-        GoogleCalendarAPI calendar = new GoogleCalendarAPI();
+        GoogleCalendarAPI calendar = new GoogleCalendarAPI(config);
 
         //For every day to update repeated
         for (int x = 0; x < daysToUpdate; x++) {

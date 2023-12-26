@@ -12,7 +12,11 @@ public class LoggingHandler {
 
     private final List<StartPage> registeredOutputs = new CopyOnWriteArrayList<>();
 
-    public LoggingHandler() {
+    private final String logFileLoc;
+
+    public LoggingHandler(Config config) {
+        logFileLoc = config.getLogsFileLocation();
+
         System.setOut(new PrintStream(System.out) {
             public void println(String s) {
                 addLog(s);
@@ -23,8 +27,7 @@ public class LoggingHandler {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         String logentry = "[" + timestamp + "] " + pLogentry;
         try {
-            String filename = "./log.txt";
-            FileWriter fw = new FileWriter(filename, true); //the true will append the new data
+            FileWriter fw = new FileWriter(logFileLoc, true); //the true will append the new data
             fw.write(logentry + "\n");//appends the string to the file
             fw.close();
         } catch (IOException ioe) {
