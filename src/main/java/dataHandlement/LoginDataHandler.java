@@ -4,16 +4,15 @@ import com.github.windpapi4j.InitializationFailedException;
 import com.github.windpapi4j.WinAPICallFailedException;
 import com.github.windpapi4j.WinDPAPI;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Objects;
 
+import static com.formdev.flatlaf.json.Json.parse;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class LoginDataHandler {
@@ -112,12 +111,11 @@ public class LoginDataHandler {
      */
     public String[] getCredentials() {
         //Create Json Objects and Parser
-        JsonParser parser = new JsonParser();
         JsonObject jsonObject;
         //Read Json File
         try {
-            jsonObject = (JsonObject) parser.parse(new FileReader(fileLocation));
-        } catch (FileNotFoundException e) {
+            jsonObject = (JsonObject) parse(new FileReader(fileLocation));
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         //Extract credentials from json File and save to Array
