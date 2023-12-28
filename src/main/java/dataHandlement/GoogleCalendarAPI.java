@@ -69,7 +69,7 @@ public class GoogleCalendarAPI {
             service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                     .setApplicationName(APPLICATION_NAME)
                     .build();
-            System.out.println("Service builded");
+            System.out.println("Service built");
     }
 
     /**
@@ -116,7 +116,7 @@ public class GoogleCalendarAPI {
             // Attempt to refresh the token
             System.out.println("Attempting to refresh the token...");
             Credential credential = refreshAccessToken(flow);
-            if (credential.getAccessToken() != null) {
+            if (credential != null && credential.getAccessToken() != null) {
                 System.out.println("Token refreshed successfully.");
                 return;
             }
@@ -126,7 +126,7 @@ public class GoogleCalendarAPI {
             flow.getCredentialDataStore().delete("user");
 
             // Prompt the user to reauthorize
-            Credential newCredential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+            new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
             System.out.println("Token reauthorized successfully.");
         } else {
             System.out.println("TokenResponseException: " + e.getMessage());
@@ -157,7 +157,7 @@ public class GoogleCalendarAPI {
             flow.getCredentialDataStore().delete("user");
 
             // Prompt the user to reauthorize
-            Credential newCredential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+            new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
             System.out.println("Token reauthorized successfully.");
         }
         service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
