@@ -18,7 +18,7 @@ dependencies {
     implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
     implementation 'com.github.untisapi:untis4j:v1.3.4'
     implementation 'com.miglayout:miglayout-swing:5.3'
-    implementation group: 'org.jdesktop', name: 'beansbinding', version: '1.2.1'
+    implementation "org.jsdektop:beansbinding:1.2.1"
     implementation 'com.github.peter-gergely-horvath:windpapi4j:1.1.0'
     implementation "com.formdev:flatlaf:3.2.5"
     implementation 'org.tomlj:tomlj:1.1.0'
