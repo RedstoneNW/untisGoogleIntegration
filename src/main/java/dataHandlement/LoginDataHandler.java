@@ -4,6 +4,7 @@ import com.github.windpapi4j.InitializationFailedException;
 import com.github.windpapi4j.WinAPICallFailedException;
 import com.github.windpapi4j.WinDPAPI;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.json.JSONObject;
 
 import java.io.FileReader;
@@ -12,7 +13,6 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Objects;
 
-import static com.formdev.flatlaf.json.Json.parse;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class LoginDataHandler {
@@ -114,7 +114,7 @@ public class LoginDataHandler {
         JsonObject jsonObject;
         //Read Json File
         try {
-            jsonObject = (JsonObject) parse(new FileReader(fileLocation));
+            jsonObject = JsonParser.parseReader(new FileReader(fileLocation)).getAsJsonObject();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
