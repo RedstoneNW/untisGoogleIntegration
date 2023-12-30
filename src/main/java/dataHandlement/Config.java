@@ -22,6 +22,14 @@ public class Config {
 
     public Config() throws IOException {
         if (!Files.exists(FILE_LOCATION)) {
+            acceptedPrivacyPolicy = false;
+            givenUntisCredentials = false;
+            untisCredentialsFile = "./credentials/untis.json";
+            googleCredentialsFile = "./credentials/google.json";
+            googleTokensLocation = "credentials/tokens";
+            logsFileLocation = "./log.txt";
+            calendarToStore = "primary";
+            howManyWeeksToUpdate = 3L;
             return;
         }
         TomlParseResult conf = Toml.parse(FILE_LOCATION);
