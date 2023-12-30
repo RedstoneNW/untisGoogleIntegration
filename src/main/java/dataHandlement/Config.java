@@ -18,7 +18,7 @@ public class Config {
     private String calendarToStore;
     private Long howManyWeeksToUpdate;
 
-    private static final Path FILE_LOCATION = Paths.get("./conf.toml");
+    private final Path FILE_LOCATION = Paths.get("./conf.toml");
 
     public Config() throws IOException {
         if (!Files.exists(FILE_LOCATION)) {
@@ -27,27 +27,61 @@ public class Config {
         TomlParseResult conf = Toml.parse(FILE_LOCATION);
         if (conf.contains("acceptedPrivacyPolicy")) {
             acceptedPrivacyPolicy = Boolean.TRUE.equals(conf.getBoolean("acceptedPrivacyPolicy"));
+        } else {
+            acceptedPrivacyPolicy = false;
         }
         if (conf.contains("givenUntisCredentials")) {
             givenUntisCredentials = Boolean.TRUE.equals(conf.getBoolean("givenUntisCredentials"));
+        } else {
+            givenUntisCredentials = false;
         }
         if (conf.contains("untisCredentialsFile")) {
             untisCredentialsFile = conf.getString("untisCredentialsFile");
+            if (untisCredentialsFile.isEmpty()) {
+                untisCredentialsFile = "./credentials/untis.json";
+            }
+        } else {
+            untisCredentialsFile = "./credentials/untis.json";
         }
         if (conf.contains("googleCredentialsFile")) {
             googleCredentialsFile = conf.getString("googleCredentialsFile");
+            if (googleCredentialsFile.isEmpty()) {
+                googleCredentialsFile = "./credentials/google.json";
+            }
+        } else {
+            googleCredentialsFile = "./credentials/google.json";
         }
         if (conf.contains("googleTokensLocation")) {
             googleTokensLocation = conf.getString("googleTokensLocation");
+            if (googleTokensLocation.isEmpty()) {
+                googleTokensLocation = "credentials/tokens";
+            }
+        } else {
+            googleTokensLocation = "credentials/tokens";
         }
         if (conf.contains("logsFileLocation")) {
             logsFileLocation = conf.getString("logsFileLocation");
+            if (logsFileLocation.isEmpty()) {
+                logsFileLocation = "./log.txt";
+            }
+        } else {
+            logsFileLocation = "./log.txt";
         }
         if (conf.contains("calendarToStore")) {
             calendarToStore = conf.getString("calendarToStore");
+            if (calendarToStore.isEmpty()) {
+                calendarToStore = "primary";
+            }
+        } else {
+            calendarToStore = "primary";
         }
         if (conf.contains("howManyWeeksToUpdate")) {
             howManyWeeksToUpdate = conf.getLong("howManyWeeksToUpdate");
+            if (howManyWeeksToUpdate == null) {
+                howManyWeeksToUpdate = 3L;
+            }
+        } else {
+            howManyWeeksToUpdate = 3L;
         }
     }
 
