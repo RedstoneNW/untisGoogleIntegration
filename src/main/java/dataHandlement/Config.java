@@ -17,7 +17,6 @@ public class Config {
     private String logsFileLocation;
     private String calendarToStore;
     private Long howManyWeeksToUpdate;
-
     private final Path FILE_LOCATION = Paths.get("./conf.toml");
 
     public Config() throws IOException {
@@ -45,7 +44,7 @@ public class Config {
         }
         if (conf.contains("untisCredentialsFile")) {
             untisCredentialsFile = conf.getString("untisCredentialsFile");
-            if (untisCredentialsFile.isEmpty()) {
+            if (untisCredentialsFile != null && untisCredentialsFile.isEmpty()) {
                 untisCredentialsFile = "./credentials/untis.json";
             }
         } else {
@@ -53,7 +52,7 @@ public class Config {
         }
         if (conf.contains("googleCredentialsFile")) {
             googleCredentialsFile = conf.getString("googleCredentialsFile");
-            if (googleCredentialsFile.isEmpty()) {
+            if (googleCredentialsFile != null && googleCredentialsFile.isEmpty()) {
                 googleCredentialsFile = "./credentials/google.json";
             }
         } else {
@@ -61,7 +60,7 @@ public class Config {
         }
         if (conf.contains("googleTokensLocation")) {
             googleTokensLocation = conf.getString("googleTokensLocation");
-            if (googleTokensLocation.isEmpty()) {
+            if (googleTokensLocation != null && googleTokensLocation.isEmpty()) {
                 googleTokensLocation = "credentials/tokens";
             }
         } else {
@@ -69,7 +68,7 @@ public class Config {
         }
         if (conf.contains("logsFileLocation")) {
             logsFileLocation = conf.getString("logsFileLocation");
-            if (logsFileLocation.isEmpty()) {
+            if (logsFileLocation != null && logsFileLocation.isEmpty()) {
                 logsFileLocation = "./log.txt";
             }
         } else {
@@ -77,7 +76,7 @@ public class Config {
         }
         if (conf.contains("calendarToStore")) {
             calendarToStore = conf.getString("calendarToStore");
-            if (calendarToStore.isEmpty()) {
+            if (calendarToStore != null && calendarToStore.isEmpty()) {
                 calendarToStore = "primary";
             }
         } else {
@@ -93,11 +92,15 @@ public class Config {
         }
     }
 
-    public boolean isAcceptedPrivacyPolicy() {
+    public Path getConfigFile_Location() {
+        return FILE_LOCATION;
+    }
+
+    public boolean hasAcceptedPrivacyPolicy() {
         return acceptedPrivacyPolicy;
     }
 
-    public boolean isGivenUntisCredentials() {
+    public boolean hasGivenUntisCredentials() {
         return givenUntisCredentials;
     }
 
