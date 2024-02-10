@@ -14,6 +14,7 @@ import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
@@ -166,6 +167,23 @@ public class GoogleCalendarAPI {
         service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
+    }
+
+    /**
+     * A method to get all Calendars the user has access to
+     * @param pageToken which calendarList should be returned
+     * @return CalendarList of the user corresponding to the pageToken
+     * @throws IOException If list formatting failed
+     */
+    public CalendarList getCalendars(String pageToken) throws IOException {
+        CalendarList calendarList;
+        try {
+            calendarList = service.calendarList().list().setPageToken(pageToken).execute();
+        } catch (TokenResponseException e) {
+            renewToken();
+            calendarList = service.calendarList().list().setPageToken(pageToken).execute();
+        }
+        return calendarList;
     }
 
     /**

@@ -3,10 +3,12 @@ package dataHandlement;
 import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Config {
     private boolean acceptedPrivacyPolicy;
@@ -126,6 +128,34 @@ public class Config {
 
     public long getHowManyWeeksToUpdate() {
         return howManyWeeksToUpdate;
+    }
+
+    public void setCalendarToStore(String newCalendarToStore) {
+        File config = new File(String.valueOf(FILE_LOCATION));
+        List<String> lines = new ArrayList<>();
+        try {
+            // Read the file
+            BufferedReader reader = new BufferedReader(new FileReader(config));
+            String currentLine;
+            while((currentLine = reader.readLine()) != null) {
+                // If the line contains "calendarToStore", replace it
+                if (currentLine.trim().contains("calendarToStore")) {
+                    currentLine = "calendarToStore = '" + newCalendarToStore + "'";
+                }
+                lines.add(currentLine);
+            }
+            reader.close();
+
+            // Write the file
+            BufferedWriter writer = new BufferedWriter(new FileWriter(config));
+            for (String line : lines) {
+                writer.write(line + System.lineSeparator());
+            }
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
 
