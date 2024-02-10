@@ -74,18 +74,16 @@ public class GoogleCalendarForm extends JPanel {
     }
 
     private void button1(ActionEvent e) {
-        GoogleCalendarAPI calendarAPI = null;
+        GoogleCalendarAPI calendarAPI;
         try {
             calendarAPI = new GoogleCalendarAPI(new Config());
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        } catch (GeneralSecurityException ex) {
+        } catch (IOException | GeneralSecurityException ex) {
             throw new RuntimeException(ex);
         }
         DefaultListModel<String> listModel = new DefaultListModel<>();
         String pageToken = null;
         do {
-            CalendarList calendarList = null;
+            CalendarList calendarList;
             try {
                 calendarList = calendarAPI.getCalendars(pageToken);
             } catch (IOException ex) {
