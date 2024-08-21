@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +41,7 @@ public class GoogleCalendarAPI {
      */
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     /**
-     * Directory to store authorization tokens
+     * Default directory to store authorization tokens
      */
     private static String TOKENS_DIRECTORY_PATH = "credentials/tokens";
     /**
@@ -49,18 +50,21 @@ public class GoogleCalendarAPI {
     private static final List<String> SCOPES =
             Collections.singletonList(CalendarScopes.CALENDAR);
     /**
-     * Path to credentials file
+     * Default path to credentials file
      */
     private static String CREDENTIALS_FILE_PATH = "./credentials/google.json";
 
-    private static String CALENDAR_ID = "c543f2e06e087d1188af906633a81116848531b716162683b0dfe1e808dc22b0@group.calendar.google.com";
+    /**
+     * Default Calendar_ID
+     */
+    private static String CALENDAR_ID = "primary";
 
     private final NetHttpTransport HTTP_TRANSPORT;
     private Calendar service;
 
     /**
      * Constructor for GoogleCalendarAPI
-     *
+     * @param config Configuration which should be used for this API Object
      * @throws IOException              If the credential file cannot be read/found
      * @throws GeneralSecurityException For API Service
      */
@@ -73,7 +77,7 @@ public class GoogleCalendarAPI {
             service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                     .setApplicationName(APPLICATION_NAME)
                     .build();
-            System.out.println("Service built");
+            System.out.println("Google Calendar API Service built");
     }
 
     /**
@@ -265,12 +269,15 @@ public class GoogleCalendarAPI {
 
         System.out.println(startTime);
 
+        byte[] utf8EncodedDescription = description.getBytes(StandardCharsets.UTF_8);
+        String descriptionUtf8 = new String(utf8EncodedDescription, StandardCharsets.UTF_8);
+
         // Add event to calendar
         Event event = new Event()
                 .setColorId("4")
                 .setSummary(name)
                 .setLocation(location)
-                .setDescription(description);
+                .setDescription(descriptionUtf8);
         //Set duration of created event
         EventDateTime start = new EventDateTime()
                 .setDateTime(startTime);

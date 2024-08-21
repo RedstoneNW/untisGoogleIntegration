@@ -19,15 +19,21 @@ public class UntisAPI {
      * Clear all added events in weeksToUpdate range
      */
     private static final boolean clearAll = false;
+    /**
+     * Global Config
+     */
+    private final Config config;
+
+    public UntisAPI(Config config) {
+        this.config = config;
+    }
 
     /**
-     *
-     * @param args Main requirement
+     * Syncs the Untis Timetable to the Google Calendar according to config file
      * @throws IOException Required for API Call
      */
-    public static void main(String[] args) throws IOException, GeneralSecurityException {
+    public void syncCalendar() throws IOException, GeneralSecurityException {
         //Load Config File Configurations
-        Config config = new Config();
         int weeksToUpdate = (int) config.getHowManyWeeksToUpdate();
 
         LoginDataHandler loginDataHandler = new LoginDataHandler(config);
@@ -88,69 +94,89 @@ public class UntisAPI {
                         }
                     }
                 } else {
-                    //Set start and end time
-                    String startTime = timetable.get(i).getStartTime().toString();
-                    String endTime = timetable.get(i).getEndTime().toString();
+                        //Check if lesson event is already added
+                        if (!eventExists(timetable, i, events)) {
 
-                    //Obtain next and current lesson
-                    String nextLesson = "UNDEFINED";
-                    String currentLesson = timetable.get(i).getSubjects().getIds().toString();
+                            //Set start and end time
+                            String startTime = timetable.get(i).getStartTime().toString();
+                            String endTime = timetable.get(i).getEndTime().toString();
 
-                    if (i < timetable.size() - 1) {
-                        nextLesson = timetable.get(i+1).getSubjects().getIds().toString();
-                    }
-                    System.out.println(currentLesson);
-                    System.out.println(nextLesson);
+                            //Obtain next and current lesson
+                            String nextLesson = "UNDEFINED";
+                            String currentLesson = timetable.get(i).getSubjects().getIds().toString();
 
-                    //Check for single or double lesson
-                    if (currentLesson.equals(nextLesson)) {
-                        endTime = timetable.get(i+1).getEndTime().toString();
-                        i++;
-                    }
+                            if (i < timetable.size() - 1) {
+                                nextLesson = timetable.get(i + 1).getSubjects().getIds().toString();
+                            }
+                            System.out.println(currentLesson);
+                            System.out.println(nextLesson);
 
-                    String currentDate = timetable.get(i).getDate().toString();
+                            //Check for single or double lesson
+                            if (currentLesson.equals(nextLesson)) {
+                                endTime = timetable.get(i + 1).getEndTime().toString();
+                                i++;
+                            }
 
-                    //Check if lesson event is already added
-                    if (!eventExists(timetable,i,events)) {
-                        System.out.println("Event not existing");
-                        //Check if exam is to be added
-                        if (!Objects.equals(timetable.get(i).getSubjects().getLongNames().toString(), "[]")) {
-                            calendar.addEvent(
-                                    timetable.get(i).getSubjects().getLongNames().toString(),
-                                    timetable.get(i).getRooms().getNames().toString(),
-                                    timetable.get(i).getTeachers().getLongNames().toString(),
-                                    currentDate,
-                                    currentDate,
-                                    startTime,
-                                    endTime
-                            );
-                        } else {
-                            if (events != null) {
-                                Iterator<Event> iterator = events.iterator();
-                                while (iterator.hasNext()) {
-                                    Event event = iterator.next();
-                                    if (event.getSummary().equals("Klausur")) {
-                                        calendar.removeEvent(event.getId());
-                                        iterator.remove(); // Use iterator's remove method
+                            String currentDate = timetable.get(i).getDate().toString();
+
+                            System.out.println("Event not existing");
+                            //Check if exam is to be added
+                            if (!Objects.equals(timetable.get(i).getSubjects().getLongNames().toString(), "[]")) {
+                                calendar.addEvent(
+                                        timetable.get(i).getSubjects().getLongNames().toString(),
+                                        timetable.get(i).getRooms().getNames().toString(),
+                                        getTeacher(timetable,i),
+                                        currentDate,
+                                        currentDate,
+                                        startTime,
+                                        endTime
+                                );
+                            } else {
+                                if (events != null) {
+                                    Iterator<Event> iterator = events.iterator();
+                                    while (iterator.hasNext()) {
+                                        Event event = iterator.next();
+                                        if (event.getSummary().equals("Klausur")) {
+                                            calendar.removeEvent(event.getId());
+                                            iterator.remove(); // Use iterator's remove method
+                                        }
                                     }
                                 }
+                                calendar.addEvent(
+                                        "Klausur",
+                                        timetable.get(i).getRooms().getNames().toString(),
+                                        getTeacher(timetable,i),
+                                        currentDate,
+                                        currentDate,
+                                        startTime,
+                                        timetable.get(i).getEndTime().toString()
+                                );
                             }
-                            calendar.addEvent(
-                                    "Klausur",
-                                    timetable.get(i).getRooms().getNames().toString(),
-                                    timetable.get(i).getTeachers().getLongNames().toString(),
-                                    currentDate,
-                                    currentDate,
-                                    startTime,
-                                    timetable.get(i).getEndTime().toString()
-                                    );
                         }
-                    }
                 }
             }
         }
         System.out.println("-----------Logged out-----------");
         session.logout();
+    }
+
+
+    /**
+     * Method to retrieve Teacher Name in UTF8
+     * @param timetable Current Untis Timetable Object
+     * @param currentLesson Current Lesson to check in timetable
+     * @return The name of the teacher of the lesson in UTF8-Format
+     */
+    public String getTeacher(Timetable timetable, int currentLesson) {
+        String teacher = timetable.get(currentLesson).getTeachers().getLongNames().toString();
+
+        byte[] teacherName = teacher.getBytes();
+
+        String result = new String(teacherName, java.nio.charset.StandardCharsets.UTF_8);
+
+        System.out.println("Teacher:" + result);
+
+        return result;
     }
 
     /**
@@ -159,7 +185,7 @@ public class UntisAPI {
      * @param currentLesson Current Lesson to check in timetable
      * @return If event exists
      */
-    public static boolean eventExists(Timetable timetable, int currentLesson, List<Event> pEvents) {
+    public boolean eventExists(Timetable timetable, int currentLesson, List<Event> pEvents) {
         //Get all events from given Day
         System.out.println("----Checking for existing Events----");
         boolean isExisting = false;
