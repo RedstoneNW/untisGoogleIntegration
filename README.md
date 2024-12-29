@@ -1,3 +1,6 @@
+[![CodeQL](https://github.com/RedstoneNW/untisGoogleIntegration/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/RedstoneNW/untisGoogleIntegration/actions/workflows/github-code-scanning/codeql)
+[![Dependency review](https://github.com/RedstoneNW/untisGoogleIntegration/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/RedstoneNW/untisGoogleIntegration/actions/workflows/dependency-review.yml)
+
 # untisGoogleIntegration
 This program syncs the timetable from Untis to the Google Calendar using the Untis Timetable API as well as the Google Calendar API
 
