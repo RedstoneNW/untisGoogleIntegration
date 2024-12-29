@@ -17,6 +17,9 @@ out/
 !**/src/test/**/out/
 .idea/shelf/*
 
+# Ignore .env file to keep environment variables secret
+.env
+
 ### Eclipse ###
 .apt_generated
 .classpath
@@ -56,3 +59,4 @@ bin/
 /credentials/untis.json
 /.idea/vcs.xml
 /.idea/workspace.xml
+.qodo
