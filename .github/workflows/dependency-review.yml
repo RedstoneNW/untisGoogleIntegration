@@ -11,7 +11,9 @@ name: 'Dependency review'
 on:
   pull_request:
     branches: [ "master" ]
-  workflow_dispatch:  # Allows manual triggering
+  push:
+    branches: [ "master" ]  # This triggers the action on pushes to the master branch
+
     
 # If using a dependency submission action in this workflow this permission will need to be set to:
 #
@@ -35,6 +37,5 @@ jobs:
         # Commonly enabled options, see https://github.com/actions/dependency-review-action#configuration-options for all available options.
         with:
           comment-summary-in-pr: always
-        #   fail-on-severity: moderate
         #   deny-licenses: GPL-1.0-or-later, LGPL-2.0-or-later
         #   retry-on-snapshot-warnings: true
