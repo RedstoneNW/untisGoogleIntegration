@@ -38,10 +38,14 @@ jobs:
           distribution: 'oracle'
           cache: 'gradle'
 
-      # Step 3: Build the project
+      # Step 3: Set gradle permission
+      - name: Set execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      # Step 4: Build the project
       - name: Build Project
         run: ./gradlew build
 
-      # Step 3: Run your Java project
+      # Step 5: Run your Java project
       - name: Run Main class
         run: java -cp "build/classes/java/main" dataHandlement.Main
