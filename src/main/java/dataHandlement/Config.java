@@ -50,7 +50,7 @@ public class Config {
         calendarToStore = getEnvVal("calendarToStore", "primary", Optional.of(conf));
         howManyWeeksToUpdate = getEnvVal("howManyWeeksToUpdate", 3L, Optional.of(conf));
         AESKEY = getEnvVal("AESKEY", "", Optional.of(conf));
-        useOAuth = getEnvVal("useOAuth", false, Optional.of(conf));
+        useOAuth = getEnvVal("useOAuth", true, Optional.of(conf));
         googleServiceAccountJson = getEnvVal("googleServiceAccountJson", "", Optional.of(conf));
     }
 
