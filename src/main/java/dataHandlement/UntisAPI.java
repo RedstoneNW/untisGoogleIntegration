@@ -78,7 +78,6 @@ public class UntisAPI {
                 //Check if lesson is cancelled
                 if (Objects.equals(timetable.get(i).getTeachers().toString(), "[]") || Objects.equals(timetable.get(i).getCode().toString(), "CANCELLED") || clearAll) {
                     System.out.println("CANCELLED");
-                    System.out.println(events);
                     //Delete lesson event if it is already added
                     if (events != null) {
                         System.out.println("Sizes: ");
