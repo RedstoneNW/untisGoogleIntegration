@@ -26,7 +26,8 @@ public class Config {
     private final Path FILE_LOCATION = Paths.get("./conf.toml");
 
     public Config() throws IOException {
-        if (!Files.exists(FILE_LOCATION)) {
+        boolean dontReadConfig = getEnvVal("dontReadConfig",false,Optional.empty());
+        if (!Files.exists(FILE_LOCATION) || dontReadConfig) {
             acceptedPrivacyPolicy = getEnvVal("acceptedPrivacyPolicy", false, Optional.empty());
             givenUntisCredentials = getEnvVal("givenUntisCredentials", false, Optional.empty());
             untisCredentialsFile = getEnvVal("untisCredentialsFile", "./credentials/untis.json", Optional.empty());
