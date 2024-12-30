@@ -9,7 +9,7 @@ on:
 
   # Schedule the workflow to run daily at 08:15
   schedule:
-    - cron: '15 8 * * *'
+    - cron: '15 8 * * 1-5'
 
 jobs:
   build:
@@ -39,12 +39,12 @@ jobs:
           cache: 'gradle'
 
       # Step 3: Install Gradle 8.2.1
-      - name: Install Gradle 8.2.1
+      - name: Install Gradle
         run: |
           wget https://services.gradle.org/distributions/gradle-8.2.1-bin.zip
-          unzip gradle-8.2.1-bin.zip
-          mv gradle-8.2.1 /usr/local/gradle
-          echo "PATH=\$PATH:/usr/local/gradle/bin" >> $GITHUB_ENV
+          unzip gradle-8.2.1-bin.zip -d /tmp
+          echo "GRADLE_HOME=/tmp/gradle-8.2.1" >> $GITHUB_ENV
+          echo "PATH=\$GRADLE_HOME/bin:\$PATH" >> $GITHUB_ENV
 
       # Step 3: Set execute permission for gradlew
       - name: Set execute permission for gradlew
