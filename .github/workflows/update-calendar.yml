@@ -44,10 +44,6 @@ jobs:
         with:
           gradle-version: "8.2.1"
 
-      # Step 3: Set execute permission for gradlew
-      - name: Set execute permission for gradlew
-        run: chmod +x ./gradlew
-
       # Step 4: Build the project
       - name: Build Project
         run: ./gradlew build
