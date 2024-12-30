@@ -174,7 +174,7 @@ public class UntisAPI {
 
         String result = new String(teacherName, java.nio.charset.StandardCharsets.UTF_8);
 
-        System.out.println("Teacher:" + result);
+        //System.out.println("Teacher:" + result);
 
         return result;
     }

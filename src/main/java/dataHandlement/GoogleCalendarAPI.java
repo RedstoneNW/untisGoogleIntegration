@@ -315,7 +315,7 @@ public class GoogleCalendarAPI {
 
         //Add event to primary calendar
         event = service.events().insert(CALENDAR_ID, event).execute();
-        System.out.println("Event add to calendar: %s\n" + event.getHtmlLink());
+        System.out.println("Event added to calendar: \n");
     }
 
     /**

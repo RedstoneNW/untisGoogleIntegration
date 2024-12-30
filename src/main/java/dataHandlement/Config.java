@@ -77,7 +77,10 @@ public class Config {
     }
 
     private <ContentType> ContentType getEnvVal(String key, ContentType defaultValue, Optional<TomlParseResult> conf) {
-        String value = System.getenv("UNTISGOOGLESYNC_" + key);
+        System.out.println("get envVal");
+        String envKey = "UNTISGOOGLESYNC_" + key;
+        System.out.println(envKey);
+        String value = System.getenv(envKey);
         if (value == null || value.isEmpty()) {
             if (conf.isPresent()) {
                 return getConfigVal(conf.get(), key, defaultValue);
