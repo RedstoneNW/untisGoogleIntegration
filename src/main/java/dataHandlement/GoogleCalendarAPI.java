@@ -18,11 +18,11 @@ import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
@@ -35,29 +35,31 @@ public class GoogleCalendarAPI {
      * <p></p>
      * Untis Google Calendar Integration
      */
-    private static final String APPLICATION_NAME = "Untis Google Calendar Integration";
+    private final String APPLICATION_NAME = "Untis Google Calendar Integration";
     /**
      * Global instance of the JSON Factory
      */
-    private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     /**
      * Default directory to store authorization tokens
      */
-    private static String TOKENS_DIRECTORY_PATH = "credentials/tokens";
+    private final String TOKENS_DIRECTORY_PATH;
     /**
      * Global Instances of the scopes required
      */
-    private static final List<String> SCOPES =
+    private final List<String> SCOPES =
             Collections.singletonList(CalendarScopes.CALENDAR);
     /**
      * Default path to credentials file
      */
-    private static String CREDENTIALS_FILE_PATH = "./credentials/google.json";
+    private final String CREDENTIALS_FILE_PATH;
 
     /**
      * Default Calendar_ID
      */
-    private static String CALENDAR_ID = "primary";
+    private final String CALENDAR_ID;
+
+    private final boolean useOAuth;
 
     private final NetHttpTransport HTTP_TRANSPORT;
     private Calendar service;
@@ -72,11 +74,19 @@ public class GoogleCalendarAPI {
             TOKENS_DIRECTORY_PATH = config.getGoogleTokensLocation();
             CREDENTIALS_FILE_PATH = config.getGoogleCredentialsFile();
             CALENDAR_ID = config.getCalendarToStore();
+            useOAuth = config.isUseOAuth();
 
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                    .setApplicationName(APPLICATION_NAME)
-                    .build();
+
+            if (useOAuth) {
+                service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+            } else {
+                service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, new HttpCredentialsAdapter(getServiceCredentials(config.getGoogleServiceAccountJson())))
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+            }
             System.out.println("Google Calendar API Service built");
     }
 
@@ -88,18 +98,30 @@ public class GoogleCalendarAPI {
      * @throws IOException If the credential file cannot be read/found
      */
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
-        GoogleAuthorizationCodeFlow flow = buildAuthorizationFlow(HTTP_TRANSPORT);
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+            GoogleAuthorizationCodeFlow flow = buildAuthorizationFlow(HTTP_TRANSPORT);
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
 
+            try {
+                // Attempt to get credentials
+                return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+            } catch (TokenResponseException e) {
+                handleTokenResponseException(flow, receiver, e);
+            }
+
+            // Rethrow the exception as a RuntimeException
+            throw new RuntimeException("Google API Token error");
+    }
+
+    private GoogleCredentials getServiceCredentials(String serviceAccountJson) {
+        ByteArrayInputStream serviceAccountCredentialStream = new ByteArrayInputStream(serviceAccountJson.getBytes(StandardCharsets.UTF_8));
+        GoogleCredentials googleCredentials;
         try {
-            // Attempt to get credentials
-            return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-        } catch (TokenResponseException e) {
-            handleTokenResponseException(flow, receiver, e);
+            googleCredentials = ServiceAccountCredentials.fromStream(serviceAccountCredentialStream)
+                    .createScoped(SCOPES);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load service account credentials", e);
         }
-
-        // Rethrow the exception as a RuntimeException
-        throw new RuntimeException("Google API Token error");
+        return googleCredentials;
     }
 
     private GoogleAuthorizationCodeFlow buildAuthorizationFlow(final NetHttpTransport HTTP_TRANSPORT) throws IOException {

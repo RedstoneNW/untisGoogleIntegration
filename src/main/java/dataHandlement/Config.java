@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Config {
     private boolean acceptedPrivacyPolicy;
@@ -19,79 +20,85 @@ public class Config {
     private String logsFileLocation;
     private String calendarToStore;
     private Long howManyWeeksToUpdate;
+    private String AESKEY;
+    private boolean useOAuth;
+    private String googleServiceAccountJson;
     private final Path FILE_LOCATION = Paths.get("./conf.toml");
 
     public Config() throws IOException {
         if (!Files.exists(FILE_LOCATION)) {
-            acceptedPrivacyPolicy = false;
-            givenUntisCredentials = false;
-            untisCredentialsFile = "./credentials/untis.json";
-            googleCredentialsFile = "./credentials/google.json";
-            googleTokensLocation = "credentials/tokens";
-            logsFileLocation = "./log.txt";
-            calendarToStore = "primary";
-            howManyWeeksToUpdate = 3L;
+            acceptedPrivacyPolicy = getEnvVal("acceptedPrivacyPolicy", false, Optional.empty());
+            givenUntisCredentials = getEnvVal("givenUntisCredentials", false, Optional.empty());
+            untisCredentialsFile = getEnvVal("untisCredentialsFile", "./credentials/untis.json", Optional.empty());
+            googleCredentialsFile = getEnvVal("googleCredentialsFile", "./credentials/google.json", Optional.empty());
+            googleTokensLocation = getEnvVal("googleTokensLocation", "credentials/tokens", Optional.empty());
+            logsFileLocation = getEnvVal("logsFileLocation", "./log.txt", Optional.empty());
+            calendarToStore = getEnvVal("calendarToStore", "primary", Optional.empty());
+            howManyWeeksToUpdate = getEnvVal("howManyWeeksToUpdate", 3L, Optional.empty());
+            AESKEY = getEnvVal("AESKEY", "", Optional.empty());
+            useOAuth = getEnvVal("useOAuth",true,Optional.empty());
+            googleServiceAccountJson = getEnvVal("googleServiceAccountJson", "", Optional.empty());
             return;
         }
         TomlParseResult conf = Toml.parse(FILE_LOCATION);
-        if (conf.contains("acceptedPrivacyPolicy")) {
-            acceptedPrivacyPolicy = Boolean.TRUE.equals(conf.getBoolean("acceptedPrivacyPolicy"));
-        } else {
-            acceptedPrivacyPolicy = false;
-        }
-        if (conf.contains("givenUntisCredentials")) {
-            givenUntisCredentials = Boolean.TRUE.equals(conf.getBoolean("givenUntisCredentials"));
-        } else {
-            givenUntisCredentials = false;
-        }
-        if (conf.contains("untisCredentialsFile")) {
-            untisCredentialsFile = conf.getString("untisCredentialsFile");
-            if (untisCredentialsFile != null && untisCredentialsFile.isEmpty()) {
-                untisCredentialsFile = "./credentials/untis.json";
+        acceptedPrivacyPolicy = getEnvVal("acceptedPrivacyPolicy", false, Optional.of(conf));
+        givenUntisCredentials = getEnvVal("givenUntisCredentials", false, Optional.of(conf));
+        untisCredentialsFile = getEnvVal("untisCredentialsFile", "./credentials/untis.json", Optional.of(conf));
+        googleCredentialsFile = getEnvVal("googleCredentialsFile", "./credentials/google.json", Optional.of(conf));
+        googleTokensLocation = getEnvVal("googleTokensLocation", "credentials/tokens", Optional.of(conf));
+        logsFileLocation = getEnvVal("logsFileLocation", "./log.txt", Optional.of(conf));
+        calendarToStore = getEnvVal("calendarToStore", "primary", Optional.of(conf));
+        howManyWeeksToUpdate = getEnvVal("howManyWeeksToUpdate", 3L, Optional.of(conf));
+        AESKEY = getEnvVal("AESKEY", "", Optional.of(conf));
+        useOAuth = getEnvVal("useOAuth", false, Optional.of(conf));
+        googleServiceAccountJson = getEnvVal("googleServiceAccountJson", "", Optional.of(conf));
+    }
+
+    private <ContentType> ContentType getConfigVal(TomlParseResult conf, String key, ContentType defaultValue) {
+        if (conf.contains(key)) {
+            System.out.println(key + "is in Conf");
+            Object configVal = conf.get(key);
+            if (configVal != null) {
+                if (defaultValue instanceof String) {
+                    return (ContentType) configVal;
+                } else if (defaultValue instanceof Long) {
+                    try {
+                        return (ContentType) configVal;
+                    } catch (NumberFormatException e) {
+                        return defaultValue;
+                    }
+                } else if (defaultValue instanceof Boolean) {
+                    return (ContentType) configVal;
+                }
             }
-        } else {
-            untisCredentialsFile = "./credentials/untis.json";
         }
-        if (conf.contains("googleCredentialsFile")) {
-            googleCredentialsFile = conf.getString("googleCredentialsFile");
-            if (googleCredentialsFile != null && googleCredentialsFile.isEmpty()) {
-                googleCredentialsFile = "./credentials/google.json";
+        return defaultValue;
+    }
+
+    private <ContentType> ContentType getEnvVal(String key, ContentType defaultValue, Optional<TomlParseResult> conf) {
+        String value = System.getenv("UNTISGOOGLESYNC_" + key);
+        if (value == null || value.isEmpty()) {
+            if (conf.isPresent()) {
+                return getConfigVal(conf.get(), key, defaultValue);
+            } else return defaultValue;
+        }
+
+        if (defaultValue instanceof String){
+            return (ContentType) value;
+        } else if (defaultValue instanceof Long) {
+            try {
+                return (ContentType) Long.valueOf(value);
+            } catch (NumberFormatException e) {
+                if (conf.isPresent()) {
+                    return getConfigVal(conf.get(), key, defaultValue);
+                } else return defaultValue;
             }
-        } else {
-            googleCredentialsFile = "./credentials/google.json";
+        } else if (defaultValue instanceof Boolean) {
+            return (ContentType) Boolean.valueOf(value);
         }
-        if (conf.contains("googleTokensLocation")) {
-            googleTokensLocation = conf.getString("googleTokensLocation");
-            if (googleTokensLocation != null && googleTokensLocation.isEmpty()) {
-                googleTokensLocation = "credentials/tokens";
-            }
-        } else {
-            googleTokensLocation = "credentials/tokens";
-        }
-        if (conf.contains("logsFileLocation")) {
-            logsFileLocation = conf.getString("logsFileLocation");
-            if (logsFileLocation != null && logsFileLocation.isEmpty()) {
-                logsFileLocation = "./log.txt";
-            }
-        } else {
-            logsFileLocation = "./log.txt";
-        }
-        if (conf.contains("calendarToStore")) {
-            calendarToStore = conf.getString("calendarToStore");
-            if (calendarToStore != null && calendarToStore.isEmpty()) {
-                calendarToStore = "primary";
-            }
-        } else {
-            calendarToStore = "primary";
-        }
-        if (conf.contains("howManyWeeksToUpdate")) {
-            howManyWeeksToUpdate = conf.getLong("howManyWeeksToUpdate");
-            if (howManyWeeksToUpdate == null) {
-                howManyWeeksToUpdate = 3L;
-            }
-        } else {
-            howManyWeeksToUpdate = 3L;
-        }
+        if (conf.isPresent()) {
+            return getConfigVal(conf.get(), key, defaultValue);
+        } else return defaultValue;
     }
 
     public Path getConfigFile_Location() {
@@ -128,6 +135,18 @@ public class Config {
 
     public long getHowManyWeeksToUpdate() {
         return howManyWeeksToUpdate;
+    }
+
+    public String getAESKEY() {
+        return AESKEY;
+    }
+
+    public boolean isUseOAuth() {
+        return useOAuth;
+    }
+
+    public String getGoogleServiceAccountJson() {
+        return googleServiceAccountJson;
     }
 
     public void setCalendarToStore(String newCalendarToStore) {

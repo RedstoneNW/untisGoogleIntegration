@@ -7,6 +7,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.json.JSONObject;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,28 +26,34 @@ public class LoginDataHandler {
     /**
      * Global Instance of WinDPAPI encryption Object
      */
+    private final boolean useWinDPAPI;
     private WinDPAPI winDPAPI;
+    private SecretKey aesKey;
+    private static final String AES_ALGORITHM = "AES";  // Declare the constant
+
 
     public LoginDataHandler(Config config) {
         fileLocation = config.getUntisCredentialsFile();
+        useWinDPAPI = WinDPAPI.isPlatformSupported();
+        if (!useWinDPAPI) {
+            System.out.println("The Windows Data Protection API (DPAPI) is not available on " + System.getProperty("os.name") + ". Falling back to AES");
+            String secretKey = config.getAESKEY();
+            aesKey = new SecretKeySpec(Base64.getDecoder().decode(secretKey), AES_ALGORITHM);
+        }
     }
 
     /**
-     * Method to encrypt all elements in the given Array and returning the encrypted Strings after encryption with WinDPAPI encryption Service
-     * @param pCredentials Array with credentials to encrypt
+     * Method to encryptWinDPAPI all elements in the given Array and returning the encrypted Strings after encryption with WinDPAPI encryption Service
+     * @param pCredentials Array with credentials to encryptWinDPAPI
      * @return Array with encrypted credentials
      * @throws WinAPICallFailedException If Encryption Failed
      * @throws InitializationFailedException If Encryption Instance Initialization Failed
      */
-    private String[] encrypt(String[] pCredentials) throws WinAPICallFailedException, InitializationFailedException {
-        //Check if WinDPAPI is supported
-        if (!WinDPAPI.isPlatformSupported()) {
-            throw new UnsupportedOperationException("The Windows Data Protection API (DPAPI) is not available on " + System.getProperty("os.name") + ".");
-        }
+    private String[] encryptWinDPAPI(String[] pCredentials) throws WinAPICallFailedException, InitializationFailedException {
         //Create Encryption Instance and output Array
         winDPAPI = WinDPAPI.newInstance(WinDPAPI.CryptProtectFlag.CRYPTPROTECT_UI_FORBIDDEN);
         String[] encryptedCredentials = new String[pCredentials.length];
-        //For every String in given Array: encrypt using winDPAPI
+        //For every String in given Array: encryptWinDPAPI using winDPAPI
         for (int x = 0; x < pCredentials.length; x++) {
             byte[] encryptedBytes = winDPAPI.protectData(pCredentials[x].getBytes(UTF_8));
             encryptedCredentials[x] = Base64.getEncoder().encodeToString(encryptedBytes);
@@ -53,21 +62,17 @@ public class LoginDataHandler {
     }
 
     /**
-     * Method to decrypt all elements in the given Array and returning the decrypted Strings after decryption with WinDPAPI decryption Service
-     * @param pCredentials Array with credentials to decrypt
+     * Method to decryptWinDPAPI all elements in the given Array and returning the decrypted Strings after decryption with WinDPAPI decryption Service
+     * @param pCredentials Array with credentials to decryptWinDPAPI
      * @return Array with decrypted credentials
      * @throws WinAPICallFailedException If Decryption Failed
      * @throws InitializationFailedException If Decryption Instance Initialization Failed
      */
-    private String[] decrypt(String[] pCredentials) throws WinAPICallFailedException, InitializationFailedException {
-        //Check if WinDPAPI is supported
-        if (!WinDPAPI.isPlatformSupported()) {
-            throw new UnsupportedOperationException("The Windows Data Protection API (DPAPI) is not available on " + System.getProperty("os.name") + ".");
-        }
+    private String[] decryptWinDPAPI(String[] pCredentials) throws WinAPICallFailedException, InitializationFailedException {
         //Create Decryption Instance and output Array
         winDPAPI = WinDPAPI.newInstance(WinDPAPI.CryptProtectFlag.CRYPTPROTECT_UI_FORBIDDEN);
         String[] decryptedCredentials = new String[pCredentials.length];
-        //For every String in given Array: decrypt using winDPAPI
+        //For every String in given Array: decryptWinDPAPI using winDPAPI
         for (int x = 0; x < pCredentials.length; x++) {
             byte[] decryptedBytes = Base64.getMimeDecoder().decode(pCredentials[x]);
             decryptedCredentials[x] = new String(winDPAPI.unprotectData(decryptedBytes), UTF_8);
@@ -75,8 +80,41 @@ public class LoginDataHandler {
         return decryptedCredentials;
     }
 
+    private String[] encryptAES(String[] pCredentials) {
+        String[] encryptedCredentials = new String[pCredentials.length];
+        try {
+            Cipher cipher = Cipher.getInstance(AES_ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+
+            for (int i = 0; i < pCredentials.length; i++) {
+                byte[] encryptedBytes = cipher.doFinal(pCredentials[i].getBytes(UTF_8));
+                encryptedCredentials[i] = Base64.getEncoder().encodeToString(encryptedBytes);
+            }
+            return encryptedCredentials;
+        } catch (Exception e) {
+            throw new RuntimeException("AES-encryption failed", e);
+        }
+    }
+
+    private String[] decryptAES(String[] pCredentials) {
+        String[] decryptedCredentials = new String[pCredentials.length];
+        try {
+            Cipher cipher = Cipher.getInstance(AES_ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+
+            for (int i = 0; i < pCredentials.length; i++) {
+                byte[] decodedBytes = Base64.getDecoder().decode(pCredentials[i]);
+                byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+                decryptedCredentials[i] = new String(decryptedBytes, UTF_8);
+            }
+            return decryptedCredentials;
+        } catch (Exception e) {
+            throw new RuntimeException("AES-decryption failed", e);
+        }
+    }
+
     /**
-     * Method to save and encrypt given credentials to json File
+     * Method to save and encryptWinDPAPI given credentials to json File
      * @param pCredentials Array with credentials to safely store
      * @throws WinAPICallFailedException Error while encrypting credentials
      */
@@ -85,9 +123,13 @@ public class LoginDataHandler {
         JSONObject jsonObject = new JSONObject();
         String[] categories = new String[]{"username", "password", "school", "server"};
         String[] encryptedCredentials;
-        //Encrypt credentials using winDPAPI encrypt Method
+        //Encrypt credentials using winDPAPI encryptWinDPAPI Method
         try {
-            encryptedCredentials = encrypt(pCredentials);
+            if (useWinDPAPI) {
+                encryptedCredentials = encryptWinDPAPI(pCredentials);
+            } else {
+                encryptedCredentials = encryptAES(pCredentials);
+            }
         } catch (InitializationFailedException e) {
             throw new RuntimeException(e);
         }
@@ -110,24 +152,50 @@ public class LoginDataHandler {
      * @return Array with decrypted credentials
      */
     public String[] getCredentials() {
-        //Create Json Objects and Parser
-        JsonObject jsonObject;
-        //Read Json File
-        try {
-            jsonObject = JsonParser.parseReader(new FileReader(fileLocation)).getAsJsonObject();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        //Extract credentials from json File and save to Array
         String[] credentials = new String[4];
-        credentials[0] = String.valueOf(jsonObject.get("username"));
-        credentials[1] = String.valueOf(jsonObject.get("password"));
-        credentials[2] = String.valueOf(jsonObject.get("school"));
-        credentials[3] = String.valueOf(jsonObject.get("server"));
 
-        //Decrypt credentials using winDPAPI decrypt Method
+        //Get credentials from environment variables
+        credentials[0] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "username");
+        credentials[1] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "password");
+        credentials[2] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "school");
+        credentials[3] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "server");
+
+        //Check if all encrypted credentials could be obtained
+        boolean isEmptyVar = false;
+        for (String credential : credentials) {
+            if (credential == null || credential.isEmpty()) {
+                isEmptyVar = true;
+                break;
+            }
+        }
+
+        //Check if environment variables did not provide all values
+        if (isEmptyVar) {
+            //Create Json Objects and Parser
+            JsonObject jsonObject;
+            //Read Json File
+            try {
+                jsonObject = JsonParser.parseReader(new FileReader(fileLocation)).getAsJsonObject();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            //Extract credentials from JSON file for missing environment values
+            for (int i = 0; i < credentials.length; i++) {
+                if (credentials[i] == null || credentials[i].isEmpty()) {
+                    if (i == 0) credentials[0] = String.valueOf(jsonObject.get("username"));
+                    if (i == 1) credentials[1] = String.valueOf(jsonObject.get("password"));
+                    if (i == 2) credentials[2] = String.valueOf(jsonObject.get("school"));
+                    if (i == 3) credentials[3] = String.valueOf(jsonObject.get("server"));
+                }
+            }
+        }
+        //Decrypt credentials using winDPAPI or AES decryption Methods
         try {
-            credentials = decrypt(credentials);
+            if (useWinDPAPI) {
+                credentials = decryptWinDPAPI(credentials);
+            } else {
+                credentials = decryptAES(credentials);
+            }
         } catch (WinAPICallFailedException | InitializationFailedException e) {
             throw new RuntimeException(e);
         }
