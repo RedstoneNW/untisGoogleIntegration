@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
@@ -12,6 +14,14 @@ repositories {
 }
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += '-Xlint:deprecation'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'dataHandlement.Main'
+        )
+    }
 }
 
 dependencies {
@@ -35,6 +45,21 @@ shadowJar {
     archiveBaseName = 'Untis-Google-CalendarIntegration'
     archiveClassifier = 'fat'  // optional: this prevents it from appending '-all'
     archiveVersion = '1.0.0'  // optional: this removes the version suffix
+    from sourceSets.main.output
+    manifest {
+        attributes(
+                'Main-Class': 'dataHandlement.Main'
+        )
+    }
+}
+
+tasks.register('buildFatJar', ShadowJar) {
+    dependsOn configurations.runtimeClasspath
+    from sourceSets.main.output
+    from configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    archiveBaseName.set('untis-google-integration')
+    archiveVersion.set('1.0.0')
+    archiveClassifier.set('all')  // You can specify a classifier like '-fat' or '-all'
 }
 
 

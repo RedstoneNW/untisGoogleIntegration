@@ -54,4 +54,4 @@ jobs:
 
       # Step 5: Update Calendar
       - name: Update Calendar
-        run: java -cp build/libs/Untis-Google-CalendarIntegration-1.0.0.jar dataHandlement.Main
+        run:  java -jar .\build\libs\Untis-Google-CalendarIntegration-1.0.0-fat.jar
