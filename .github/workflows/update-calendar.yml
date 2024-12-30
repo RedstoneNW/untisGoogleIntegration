@@ -28,7 +28,7 @@ jobs:
     steps:
       # Step 1: Checkout code
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Set up JDK 20
       - name: Set up JDK 20
@@ -38,13 +38,9 @@ jobs:
           distribution: 'oracle'
           cache: 'gradle'
 
-      # Step 3: Install Gradle 8.2.1
-      - name: Install Gradle
-        run: |
-          wget https://services.gradle.org/distributions/gradle-8.2.1-bin.zip
-          unzip gradle-8.2.1-bin.zip -d /tmp
-          echo "GRADLE_HOME=/tmp/gradle-8.2.1" >> $GITHUB_ENV
-          echo "PATH=\$GRADLE_HOME/bin:\$PATH" >> $GITHUB_ENV
+      # Step 3: Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       # Step 3: Set execute permission for gradlew
       - name: Set execute permission for gradlew
