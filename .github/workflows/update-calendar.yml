@@ -9,7 +9,7 @@ on:
 
   # Schedule the workflow to run daily at 08:15
   schedule:
-    - cron: '15 8 * * 1-5'
+    - cron: '05 8 * * 1-5'
 
 jobs:
   build:
