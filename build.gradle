@@ -51,6 +51,7 @@ shadowJar {
                 'Main-Class': 'dataHandlement.Main'
         )
     }
+    destinationDirectory.set(file("$buildDir/libs"))
 }
 
 tasks.register('buildFatJar', ShadowJar) {
