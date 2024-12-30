@@ -44,7 +44,6 @@ jobs:
 
       # Step 5: Update Calendar
       - name: Update Calendar
-        run:  java -jar build/libs/Untis-Google-CalendarIntegration-1.0.0-fat.jar
         env:
           UNTISGOOGLESYNC_AESKEY: ${{ secrets.UNTISGOOGLESYNC_AESKEY }}
           UNTISGOOGLESYNC_CALENDARTOSTORE: ${{ secrets.UNTISGOOGLESYNC_CALENDARTOSTORE }}
@@ -54,3 +53,4 @@ jobs:
           UNTISGOOGLESYNC_ULOGIN_SERVER: ${{ secrets.UNTISGOOGLESYNC_ULOGIN_SERVER }}
           UNTISGOOGLESYNC_ULOGIN_USERNAME: ${{ secrets.UNTISGOOGLESYNC_ULOGIN_USERNAME }}
           UNTISGOOGLESYNC_USEOAUTH: ${{ secrets.UNTISGOOGLESYNC_USEOAUTH }}
+        run:  java -jar build/libs/Untis-Google-CalendarIntegration-1.0.0-fat.jar

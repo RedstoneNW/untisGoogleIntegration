@@ -155,10 +155,10 @@ public class LoginDataHandler {
         String[] credentials = new String[4];
 
         //Get credentials from environment variables
-        credentials[0] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "username");
-        credentials[1] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "password");
-        credentials[2] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "school");
-        credentials[3] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "server");
+        credentials[0] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "USERNAME");
+        credentials[1] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "PASSWORD");
+        credentials[2] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "SCHOOL");
+        credentials[3] = System.getenv("UNTISGOOGLESYNC_ULOGIN_" + "SERVER");
 
         //Check if all encrypted credentials could be obtained
         boolean isEmptyVar = false;

@@ -26,7 +26,7 @@ public class Config {
     private final Path FILE_LOCATION = Paths.get("./conf.toml");
 
     public Config() throws IOException {
-        boolean dontReadConfig = getEnvVal("dontReadConfig",false,Optional.empty());
+        boolean dontReadConfig = getEnvVal("DONTREADCONFIG",false,Optional.empty());
         if (!Files.exists(FILE_LOCATION) || dontReadConfig) {
             acceptedPrivacyPolicy = getEnvVal("acceptedPrivacyPolicy", false, Optional.empty());
             givenUntisCredentials = getEnvVal("givenUntisCredentials", false, Optional.empty());
@@ -34,11 +34,11 @@ public class Config {
             googleCredentialsFile = getEnvVal("googleCredentialsFile", "./credentials/google.json", Optional.empty());
             googleTokensLocation = getEnvVal("googleTokensLocation", "credentials/tokens", Optional.empty());
             logsFileLocation = getEnvVal("logsFileLocation", "./log.txt", Optional.empty());
-            calendarToStore = getEnvVal("calendarToStore", "primary", Optional.empty());
+            calendarToStore = getEnvVal("CALENDARTOSTORE", "primary", Optional.empty());
             howManyWeeksToUpdate = getEnvVal("howManyWeeksToUpdate", 3L, Optional.empty());
             AESKEY = getEnvVal("AESKEY", "", Optional.empty());
-            useOAuth = getEnvVal("useOAuth",true,Optional.empty());
-            googleServiceAccountJson = getEnvVal("googleServiceAccountJson", "", Optional.empty());
+            useOAuth = getEnvVal("USEOAUTH",true,Optional.empty());
+            googleServiceAccountJson = getEnvVal("GOOGLESERVICEACCOUNTJSON", "", Optional.empty());
             return;
         }
         TomlParseResult conf = Toml.parse(FILE_LOCATION);
@@ -48,11 +48,11 @@ public class Config {
         googleCredentialsFile = getEnvVal("googleCredentialsFile", "./credentials/google.json", Optional.of(conf));
         googleTokensLocation = getEnvVal("googleTokensLocation", "credentials/tokens", Optional.of(conf));
         logsFileLocation = getEnvVal("logsFileLocation", "./log.txt", Optional.of(conf));
-        calendarToStore = getEnvVal("calendarToStore", "primary", Optional.of(conf));
+        calendarToStore = getEnvVal("CALENDARTOSTORE", "primary", Optional.of(conf));
         howManyWeeksToUpdate = getEnvVal("howManyWeeksToUpdate", 3L, Optional.of(conf));
         AESKEY = getEnvVal("AESKEY", "", Optional.of(conf));
-        useOAuth = getEnvVal("useOAuth", true, Optional.of(conf));
-        googleServiceAccountJson = getEnvVal("googleServiceAccountJson", "", Optional.of(conf));
+        useOAuth = getEnvVal("USEOAUTH", true, Optional.of(conf));
+        googleServiceAccountJson = getEnvVal("GOOGLESERVICEACCOUNTJSON", "", Optional.of(conf));
     }
 
     private <ContentType> ContentType getConfigVal(TomlParseResult conf, String key, ContentType defaultValue) {
