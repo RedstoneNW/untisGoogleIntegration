@@ -25,6 +25,14 @@ jobs:
       UNTISGOOGLESYNC_ULOGIN_USERNAME: ${{ secrets.UNTISGOOGLESYNC_ULOGIN_USERNAME }}
       UNTISGOOGLESYNC_USEOAUTH: ${{ secrets.UNTISGOOGLESYNC_USEOAUTH }}
 
+    strategy:
+      matrix:
+        gradle-version: [ 'wrapper', '8.2.1' ]
+        gradle-command: [ 'gradle' ]
+        include:
+          - gradle-version: 'wrapper'
+            gradle-command: './gradlew'
+
     steps:
       # Step 1: Checkout code
       - name: Checkout Code
@@ -43,6 +51,10 @@ jobs:
         uses: gradle/actions/setup-gradle@7ba6b1c82014ba7e124420b8688ca6a4ddb25b7b
         with:
           gradle-version: "8.2.1"
+
+      # Step 3: Set execute permission for gradlew
+      - name: Set execute permission for gradlew
+        run: chmod +x ./gradlew
 
       # Step 4: Build the project
       - name: Build Project
