@@ -50,8 +50,8 @@ jobs:
 
       # Step 4: Build the project
       - name: Build Project
-        run: ./gradlew build
+        run: ./gradlew shadowJar
 
       # Step 5: Update Calendar
       - name: Update Calendar
-        run: java -cp "build/classes/java/main" dataHandlement.Main
+        run: java -cp build/libs/Untis-Google-CalendarIntegration-1.0.0.jar dataHandlement.Main
