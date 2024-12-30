@@ -1,5 +1,8 @@
 name: Update Calendar
 
+permissions:
+  contents: read
+
 on:
   # Allow manual triggers
   workflow_dispatch:
@@ -11,6 +14,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      UNTISGOOGLESYNC_AESKEY = ${{ secrets.UNTISGOOGLESYNC_AESKEY }}
+      UNTISGOOGLESYNC_CALENDARTOSTORE = ${{ secrets.UNTISGOOGLESYNC_CALENDARTOSTORE }}
+      UNTISGOOGLESYNC_GOOGLESERVICEACCOUNTJSON = ${{ secrets.UNTISGOOGLESYNC_GOOGLESERVICEACCOUNTJSON }}
+      UNTISGOOGLESYNC_ULOGIN_PASSWORD = ${{ secrets.UNTISGOOGLESYNC_ULOGIN_PASSWORD }}
+      UNTISGOOGLESYNC_ULOGIN_SCHOOL = ${{ secrets.UNTISGOOGLESYNC_ULOGIN_SCHOOL }}
+      UNTISGOOGLESYNC_ULOGIN_SERVER = ${{ secrets.UNTISGOOGLESYNC_ULOGIN_SERVER }}
+      UNTISGOOGLESYNC_ULOGIN_USERNAME = ${{ secrets.UNTISGOOGLESYNC_ULOGIN_USERNAME }}
+      UNTISGOOGLESYNC_USEOAUTH = ${{ secrets.UNTISGOOGLESYNC_USEOAUTH }}
 
     steps:
       # Step 1: Checkout code
