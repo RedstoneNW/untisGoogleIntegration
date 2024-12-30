@@ -38,7 +38,15 @@ jobs:
           distribution: 'oracle'
           cache: 'gradle'
 
-      # Step 3: Set gradle permission
+      # Step 3: Install Gradle 8.2.1
+      - name: Install Gradle 8.2.1
+        run: |
+          wget https://services.gradle.org/distributions/gradle-8.2.1-bin.zip
+          unzip gradle-8.2.1-bin.zip
+          mv gradle-8.2.1 /usr/local/gradle
+          echo "PATH=\$PATH:/usr/local/gradle/bin" >> $GITHUB_ENV
+
+      # Step 3: Set execute permission for gradlew
       - name: Set execute permission for gradlew
         run: chmod +x ./gradlew
 
@@ -46,6 +54,6 @@ jobs:
       - name: Build Project
         run: ./gradlew build
 
-      # Step 5: Run your Java project
-      - name: Run Main class
+      # Step 5: Update Calendar
+      - name: Update Calendar
         run: java -cp "build/classes/java/main" dataHandlement.Main
