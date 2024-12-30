@@ -9,10 +9,13 @@ import org.json.JSONObject;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
 
@@ -83,12 +86,21 @@ public class LoginDataHandler {
     private String[] encryptAES(String[] pCredentials) {
         String[] encryptedCredentials = new String[pCredentials.length];
         try {
-            Cipher cipher = Cipher.getInstance(AES_ALGORITHM);
-            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+            // Generate an Initialization Vector (IV) if you don't have one
+            byte[] iv = new byte[16]; // 16 bytes for AES block size (128-bit)
+            new SecureRandom().nextBytes(iv); // Fill with random data
+
+            // Initialize Cipher with AES in CBC mode and PKCS5 padding
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey, new IvParameterSpec(iv));
 
             for (int i = 0; i < pCredentials.length; i++) {
                 byte[] encryptedBytes = cipher.doFinal(pCredentials[i].getBytes(UTF_8));
-                encryptedCredentials[i] = Base64.getEncoder().encodeToString(encryptedBytes);
+                // Combine the IV with the encrypted data and encode to Base64
+                byte[] ivAndEncryptedData = new byte[iv.length + encryptedBytes.length];
+                System.arraycopy(iv, 0, ivAndEncryptedData, 0, iv.length);
+                System.arraycopy(encryptedBytes, 0, ivAndEncryptedData, iv.length, encryptedBytes.length);
+                encryptedCredentials[i] = Base64.getEncoder().encodeToString(ivAndEncryptedData);
             }
             return encryptedCredentials;
         } catch (Exception e) {
@@ -96,15 +108,22 @@ public class LoginDataHandler {
         }
     }
 
+
     private String[] decryptAES(String[] pCredentials) {
         String[] decryptedCredentials = new String[pCredentials.length];
         try {
-            Cipher cipher = Cipher.getInstance(AES_ALGORITHM);
-            cipher.init(Cipher.DECRYPT_MODE, aesKey);
-
             for (int i = 0; i < pCredentials.length; i++) {
-                byte[] decodedBytes = Base64.getDecoder().decode(pCredentials[i]);
-                byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+                byte[] ivAndEncryptedData = Base64.getDecoder().decode(pCredentials[i]);
+
+                // Extract IV and encrypted data
+                byte[] iv = Arrays.copyOfRange(ivAndEncryptedData, 0, 16); // First 16 bytes are the IV
+                byte[] encryptedData = Arrays.copyOfRange(ivAndEncryptedData, 16, ivAndEncryptedData.length); // Rest is encrypted data
+
+                // Initialize Cipher with AES in CBC mode and PKCS5 padding
+                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                cipher.init(Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(iv));
+
+                byte[] decryptedBytes = cipher.doFinal(encryptedData);
                 decryptedCredentials[i] = new String(decryptedBytes, UTF_8);
             }
             return decryptedCredentials;
@@ -112,6 +131,7 @@ public class LoginDataHandler {
             throw new RuntimeException("AES-decryption failed", e);
         }
     }
+
 
     /**
      * Method to save and encryptWinDPAPI given credentials to json File
