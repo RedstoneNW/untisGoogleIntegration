@@ -35,7 +35,7 @@ public class Config {
             googleTokensLocation = getEnvVal("googleTokensLocation", "credentials/tokens", Optional.empty());
             logsFileLocation = getEnvVal("logsFileLocation", "./log.txt", Optional.empty());
             calendarToStore = getEnvVal("CALENDARTOSTORE", "primary", Optional.empty());
-            howManyWeeksToUpdate = getEnvVal("howManyWeeksToUpdate", 3L, Optional.empty());
+            howManyWeeksToUpdate = getEnvVal("HOWMANYWEEKSTOUPDATE", 3L, Optional.empty());
             AESKEY = getEnvVal("AESKEY", "", Optional.empty());
             useOAuth = getEnvVal("USEOAUTH",true,Optional.empty());
             googleServiceAccountJson = getEnvVal("GOOGLESERVICEACCOUNTJSON", "", Optional.empty());
@@ -49,7 +49,7 @@ public class Config {
         googleTokensLocation = getEnvVal("googleTokensLocation", "credentials/tokens", Optional.of(conf));
         logsFileLocation = getEnvVal("logsFileLocation", "./log.txt", Optional.of(conf));
         calendarToStore = getEnvVal("CALENDARTOSTORE", "primary", Optional.of(conf));
-        howManyWeeksToUpdate = getEnvVal("howManyWeeksToUpdate", 3L, Optional.of(conf));
+        howManyWeeksToUpdate = getEnvVal("HOWMANYWEEKSTOUPDATE", 3L, Optional.of(conf));
         AESKEY = getEnvVal("AESKEY", "", Optional.of(conf));
         useOAuth = getEnvVal("USEOAUTH", true, Optional.of(conf));
         googleServiceAccountJson = getEnvVal("GOOGLESERVICEACCOUNTJSON", "", Optional.of(conf));
